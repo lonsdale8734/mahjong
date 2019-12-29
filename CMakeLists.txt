@@ -23,17 +23,23 @@
 # THE SOFTWARE.
 # ****************************************************************************/
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.6)
 
-set(APP_NAME TemplateCpp)
+set(APP_NAME mahjong)
 
 project(${APP_NAME})
 
-set(COCOS2DX_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cocos2d)
-set(CMAKE_MODULE_PATH ${COCOS2DX_ROOT_PATH}/cmake/Modules/)
+if(XCODE)
+    if(NOT DEFINED CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET)
+        SET (CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0)
+    endif()
+endif()
 
-include(CocosBuildSet)
-if(NOT USE_COCOS_PREBUILT)
+if(NOT DEFINED BUILD_ENGINE_DONE) # to test mahjong into root project
+    set(COCOS2DX_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cocos2d)
+    set(CMAKE_MODULE_PATH ${COCOS2DX_ROOT_PATH}/cmake/Modules/)
+
+    include(CocosBuildSet)
     add_subdirectory(${COCOS2DX_ROOT_PATH}/cocos ${ENGINE_BINARY_PATH}/cocos/core)
 endif()
 
@@ -48,10 +54,6 @@ if(APPLE OR WINDOWS)
     cocos_mark_multi_resources(common_res_files RES_TO "Resources" FOLDERS ${GAME_RES_FOLDER})
 endif()
 
-include_directories(
-        Classes
-        ${COCOS2DX_ROOT_PATH}/cocos/audio/include/
-)
 # add cross-platforms source files and header files 
 list(APPEND GAME_SOURCE
      Classes/AIEngine.cpp
@@ -95,7 +97,7 @@ list(APPEND GAME_HEADER
      Classes/SetLayer.h
      Classes/GameConfig.h
      )
-
+    
 if(ANDROID)
     # change APP_NAME to the share library name for Android, it's value depend on AndroidManifest.xml
     set(APP_NAME MyGame)
@@ -149,30 +151,43 @@ elseif(APPLE)
 endif()
 
 # mark app complie info and libs info
-set(APP_SRC
-    ${GAME_SOURCE}
+set(all_code_files
     ${GAME_HEADER}
+    ${GAME_SOURCE}
     )
-cocos_build_app(${APP_NAME}
-                APP_SRC "${APP_SRC}"
-                DEPEND_COMMON_LIBS "cocos2d"
-                DEPEND_ANDROID_LIBS "cocos2d_android"
-                )
+if(NOT ANDROID)
+    add_executable(${APP_NAME} ${all_code_files})
+else()
+    add_library(${APP_NAME} SHARED ${all_code_files})
+    add_subdirectory(${COCOS2DX_ROOT_PATH}/cocos/platform/android ${ENGINE_BINARY_PATH}/cocos/platform)
+    target_link_libraries(${APP_NAME} -Wl,--whole-archive cpp_android_spec -Wl,--no-whole-archive)
+endif()
 
+target_link_libraries(${APP_NAME} cocos2d)
+target_include_directories(${APP_NAME}
+        PRIVATE Classes
+        PRIVATE ${COCOS2DX_ROOT_PATH}/cocos/audio/include/
+)
+
+# mark app resources
+setup_cocos_app_config(${APP_NAME})
 if(APPLE)
     set_target_properties(${APP_NAME} PROPERTIES RESOURCE "${APP_UI_RES}")
+
     if(MACOSX)
-        set_target_properties(${APP_NAME} PROPERTIES
-                              MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/proj.ios_mac/mac/Info.plist"
-                              )
+        set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/proj.ios_mac/mac/Info.plist")
     elseif(IOS)
-        cocos_pak_xcode(${APP_NAME} INFO_PLIST "iOSBundleInfo.plist.in")
+        set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/proj.ios_mac/ios/Info.plist")
         set_xcode_property(${APP_NAME} ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon")
     endif()
+
+    # For code-signing, set the DEVELOPMENT_TEAM:
+    #set_xcode_property(${APP_NAME} DEVELOPMENT_TEAM "GRLXXXX2K9")
 elseif(WINDOWS)
-    cocos_copy_target_dll(${APP_NAME} COPY_TO ${APP_BIN_DIR})
+    cocos_copy_target_dll(${APP_NAME})
 endif()
 
 if(LINUX OR WINDOWS)
-    cocos_copy_target_res(${APP_NAME} COPY_TO ${APP_RES_DIR} FOLDERS ${GAME_RES_FOLDER})
+    cocos_get_resource_path(APP_RES_DIR ${APP_NAME})
+    cocos_copy_target_res(${APP_NAME} LINK_TO ${APP_RES_DIR} FOLDERS ${GAME_RES_FOLDER})
 endif()

@@ -14,7 +14,7 @@ using namespace cocos2d;
 /**
  * 视图控制类
  */
-class ViewControl : public Node{
+class ViewControl : public Node {
 
 public:
     ViewControl();

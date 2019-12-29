@@ -13,12 +13,15 @@ void BaseUILayer::setTouchEventListener(Node *pNode, bool button, bool imageView
             ui::Button *pButtonWidget = dynamic_cast<ui::Button *>(child);          //按钮
             ui::ImageView *pImageViewWidget = dynamic_cast<ui::ImageView *>(child); //图片
             if (pButtonWidget != NULL && button) {
+                cocos2d::log("set button touch listener");
                 pButtonWidget->addTouchEventListener(CC_CALLBACK_2(BaseUILayer::onTouch, this));
             }
             if (pImageViewWidget != NULL && imageView) {
+                cocos2d::log("set image touch listener");
                 pImageViewWidget->addTouchEventListener(CC_CALLBACK_2(BaseUILayer::onTouch, this));
             }
             if (child) {
+                cocos2d::log("set touch listener");
                 setTouchEventListener(child);
             }
         }
@@ -31,9 +34,17 @@ void BaseUILayer::onTouch(Ref *ref, ui::Widget::TouchEventType eventType) {
         const char *pName = pWidget->getName().c_str();
         switch (eventType) {
             case ui::Widget::TouchEventType::ENDED:
+                cocos2d::log("touched ended %s", pName);
                 onTouchEnded(pWidget, pName);
                 break;
+            case ui::Widget::TouchEventType::BEGAN:
+                cocos2d::log("touched began %s", pName);
+                break;
+            case ui::Widget::TouchEventType::MOVED:
+                cocos2d::log("touched moved %s", pName);
+                break;
             default:
+                cocos2d::log("touched cancelled %s", pName);
                 break;
         }
     }

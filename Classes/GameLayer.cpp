@@ -2,14 +2,13 @@
 // Created by farmer on 2018/7/4.
 //
 
-#include <cocos/audio/include/SimpleAudioEngine.h>
+#include "audio/include/AudioEngine.h"
 #include "GameLayer.h"
 #include "AIPlayer.h"
 #include "RealPlayer.h"
 #include "AIEngine.h"
 #include "SetLayer.h"
 #include "GameConfig.h"
-
 
 GameLayer::GameLayer() {
     m_CurPlayer = 0;
@@ -631,7 +630,7 @@ void GameLayer::sendCardTimerUpdate(float) {
     ui::ImageView *pTimer1 = dynamic_cast<ui::ImageView *>(UIHelper::seekNodeByName(m_pLayer, "Image_Timer_1"));
     ui::ImageView *pTimer0 = dynamic_cast<ui::ImageView *>(UIHelper::seekNodeByName(m_pLayer, "Image_Timer_0"));
     int t = m_iOutCardTimeOut / 10;   //十位
-    int g = m_iOutCardTimeOut % 10;   //各位
+    int g = m_iOutCardTimeOut % 10;   //个位
     pTimer1->loadTexture(utility::toString("res/GameLayer/timer_", g, ".png"));
     pTimer0->loadTexture(utility::toString("res/GameLayer/timer_", t, ".png"));
 }
@@ -645,8 +644,8 @@ void GameLayer::sendCardTimerUpdate(float) {
 bool GameLayer::showSendCard(CMD_S_SendCard SendCard) {
     m_pOperateNotifyGroup->removeAllChildren();
     m_pOperateNotifyGroup->setVisible(true);
-    this->unschedule(schedule_selector(GameLayer::sendCardTimerUpdate));
-    this->schedule(schedule_selector(GameLayer::sendCardTimerUpdate), 1.0f);    //出牌计时
+    this->unschedule(CC_SCHEDULE_SELECTOR(GameLayer::sendCardTimerUpdate));
+    this->schedule(CC_SCHEDULE_SELECTOR(GameLayer::sendCardTimerUpdate), 1.0f);    //出牌计时
     sendCardTimerUpdate(1.0f);//立即执行
     m_pTextCardNum->setString(utility::toString((int) m_cbLeftCardCount));
     uint8_t cbViewID = switchViewChairID(SendCard.cbCurrentUser);
@@ -1532,7 +1531,7 @@ uint8_t GameLayer::switchChairViewID(uint8_t cbViewID) {
 void GameLayer::playSound(std::string file) {
     float volume = GameConfig::getInstance()->m_EffectsVolume;
     if (volume > 0) {
-        CocosDenshion::SimpleAudioEngine::getInstance()->setEffectsVolume(volume);   //音量
-        CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(file.c_str(), false);
+        // cocos2d::AudioEngine::setVolume(volume);   //音量
+        // cocos2d::AudioEngine::getInstance()->playEffect(file.c_str(), false);
     }
 }

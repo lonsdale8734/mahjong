@@ -23,23 +23,9 @@
  ****************************************************************************/
 
 #include "AppDelegate.h"
-#include "HelloWorldScene.h"
 #include "GameConfig.h"
-
-// #define USE_AUDIO_ENGINE 1
-// #define USE_SIMPLE_AUDIO_ENGINE 1
-
-#if USE_AUDIO_ENGINE && USE_SIMPLE_AUDIO_ENGINE
-#error "Don't use AudioEngine and SimpleAudioEngine at the same time. Please just select one in your game!"
-#endif
-
-#if USE_AUDIO_ENGINE
+#include "ViewControl.h"
 #include "audio/include/AudioEngine.h"
-using namespace cocos2d::experimental;
-#elif USE_SIMPLE_AUDIO_ENGINE
-#include "audio/include/SimpleAudioEngine.h"
-using namespace CocosDenshion;
-#endif
 
 USING_NS_CC;
 
@@ -51,11 +37,7 @@ AppDelegate::AppDelegate()
 
 AppDelegate::~AppDelegate() 
 {
-#if USE_AUDIO_ENGINE
     AudioEngine::end();
-#elif USE_SIMPLE_AUDIO_ENGINE
-    SimpleAudioEngine::end();
-#endif
 }
 
 // if you want a different context, modify the value of glContextAttrs
@@ -81,9 +63,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
     auto glview = director->getOpenGLView();
     if(!glview) {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
-        glview = GLViewImpl::createWithRect("cocostudio-mahjong", cocos2d::Rect(0, 0, designResolutionSize.width, designResolutionSize.height));
+        glview = GLViewImpl::createWithRect("mahjong", cocos2d::Rect(0, 0, designResolutionSize.width, designResolutionSize.height));
 #else
-        glview = GLViewImpl::create("cocostudio-mahjong");
+        glview = GLViewImpl::create("mahjong");
 #endif
         director->setOpenGLView(glview);
     }
@@ -111,23 +93,11 @@ bool AppDelegate::applicationDidFinishLaunching() {
 // This function will be called when the app is inactive. Note, when receiving a phone call it is invoked.
 void AppDelegate::applicationDidEnterBackground() {
     Director::getInstance()->stopAnimation();
-
-#if USE_AUDIO_ENGINE
     AudioEngine::pauseAll();
-#elif USE_SIMPLE_AUDIO_ENGINE
-    SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
-    SimpleAudioEngine::getInstance()->pauseAllEffects();
-#endif
 }
 
 // this function will be called when the app is active again
 void AppDelegate::applicationWillEnterForeground() {
     Director::getInstance()->startAnimation();
-
-#if USE_AUDIO_ENGINE
     AudioEngine::resumeAll();
-#elif USE_SIMPLE_AUDIO_ENGINE
-    SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
-    SimpleAudioEngine::getInstance()->resumeAllEffects();
-#endif
 }

@@ -13,11 +13,18 @@ ViewControl::ViewControl() {
     auto scene = HelloWorld::createScene();
     GameSceneManager::getInstance()->setScene(scene);
     onViewNotify(NULL);
-    __NotificationCenter::getInstance()->addObserver(this, callfuncO_selector(ViewControl::onViewNotify), ccNd_ViewNotify, NULL);
+    auto dispatcher = Director::getInstance()->getEventDispatcher();
+    dispatcher->addCustomEventListener(ccNd_ViewNotify, [this](EventCustom* event) {
+        cocos2d::log("capture event");
+        this->onViewNotify((ViewObject*) event->getUserData());
+    });
+    // __NotificationCenter::getInstance()->addObserver(this, callfuncO_selector(ViewControl::onViewNotify), ccNd_ViewNotify, NULL);
 }
 
 ViewControl::~ViewControl() {
-    __NotificationCenter::getInstance()->removeAllObservers(this);
+    auto dispatcher = Director::getInstance()->getEventDispatcher();
+    dispatcher->removeCustomEventListeners(ccNd_ViewNotify);
+    // __NotificationCenter::getInstance()->removeAllObservers(this);
 }
 
 /**
